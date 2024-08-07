@@ -168,46 +168,46 @@ class Catalog(object):
 
             # Try to guess the catalog type from its name
             if name == '3FGL':
-                return Catalog3FGL(fitsfile)
+                return Catalog3FGL(fitsfile) #4-year Source Catalog
             elif name == 'FL8Y':
-                return CatalogFL8Y(fitsfile)
+                return CatalogFL8Y(fitsfile) #Preliminary 8-year Source List
             elif name == '4FGL':
                 if catalog_file_version in ('v17','v18','v19','v20','v21','v22'):
                     if 'PLEC_Index' in tab.columns:    
-                        return Catalog4FGL(fitsfile)
+                        return Catalog4FGL(fitsfile) #8-year Source Catalog
                 elif catalog_file_version in ('v23','v24','v25','v26','v27'):
                     if 'PLEC_Index' in tab.columns:
-                        return Catalog4FGLDR2(fitsfile)
+                        return Catalog4FGLDR2(fitsfile) #10-year Source Catalog
                 elif catalog_file_version in ('v28','v29','v30','v31'):
                     if 'PLEC_IndexS' in tab.columns:
-                        return Catalog4FGLDR3(fitsfile)
+                        return Catalog4FGLDR3(fitsfile) #12-year Source Catalog
                 elif catalog_file_version in ('v32','v33','v34','v35'):
                     if 'PLEC_IndexS' in tab.columns:
-                        return Catalog4FGLDR4(fitsfile)
+                        return Catalog4FGLDR4(fitsfile) #14-year Source Catalog
                 else:
-                    return Catalog4FGL()
+                    raise Exception("Error - 4FGL catalog fits file version not recognised.")
             elif 'gll_psch_v08' in fitsfile:
-                return Catalog2FHL(fitsfile)
+                return Catalog2FHL(fitsfile) #2nd High-Energy Source Catalog
 
             if 'NickName' in tab.columns:
                 return Catalog4FGLP(fitsfile)
             else:
                 return CatalogFPY(fitsfile)
 
-        elif name == '3FGL':
-            return Catalog3FGL()
-        elif name == '2FHL':
+        elif name == '3FGL': #4-year Source Catalog
+            return Catalog3FGL() 
+        elif name == '2FHL': #2nd High-Energy Source Catalog
             return Catalog2FHL()
-        elif name == 'FL8Y':
+        elif name == 'FL8Y': #Preliminary 8-year Source List
             return CatalogFL8Y()
-        # elif name == '4FGL':
-        #     return Catalog4FGL()
-        elif name == '4FGL-DR2':
-            return Catalog4FGLDR2()
-        elif name == '4FGL-DR3':
-            return Catalog4FGLDR3()
-        elif name == '4FGL-DR4':
-            return Catalog4FGLDR4()
+        elif name == '4FGL': #8-year Source Catalog
+            return Catalog4FGL() 
+        elif name == '4FGL-DR2': #10-year Source Catalog
+            return Catalog4FGLDR2() 
+        elif name == '4FGL-DR3': #12-year Source Catalog
+            return Catalog4FGLDR3() 
+        elif name == '4FGL-DR4': #14-year Source Catalog
+            return Catalog4FGLDR4() 
         else:
             raise Exception('Unrecognized catalog {}.'.format(name))
 
@@ -229,6 +229,10 @@ class CatalogFPY(Catalog):
 
 
 class Catalog2FHL(Catalog):
+    '''
+    This class supports the LAT Second High-Energy Source Catalog (2FHL).
+    See https://fermi.gsfc.nasa.gov/ssc/data/access/lat/2FHL/
+    '''
 
     def __init__(self, fitsfile=None, extdir=None):
 
@@ -238,7 +242,7 @@ class Catalog2FHL(Catalog):
 
         if fitsfile is None:
             fitsfile = os.path.join(fermipy.PACKAGE_DATA, 'catalogs',
-                                    'gll_psch_v08.fit')
+                                    'gll_psch_v08.fit') #last update gll_psch_v09.fit
 
         hdulist = fits.open(fitsfile)
         table = Table(hdulist['2FHL Source Catalog'].data)
@@ -282,6 +286,10 @@ class Catalog2FHL(Catalog):
 
 
 class Catalog3FGL(Catalog):
+    '''
+    This class supports the LAT 4-year Source Catalog (3FGL).
+    See https://fermi.gsfc.nasa.gov/ssc/data/access/lat/4yr_catalog/
+    '''
 
     def __init__(self, fitsfile=None, extdir=None):
 
@@ -291,7 +299,7 @@ class Catalog3FGL(Catalog):
 
         if fitsfile is None:
             fitsfile = os.path.join(fermipy.PACKAGE_DATA, 'catalogs',
-                                    'gll_psc_v16.fit')
+                                    'gll_psc_v16.fit') #last update gll_psc_v16.fit
 
         table = Table.read(fitsfile, 'LAT_Point_Source_Catalog')
         table_extsrc = Table.read(fitsfile, 'ExtendedSources')
@@ -426,9 +434,10 @@ class Catalog4FGLP(Catalog):
         
 
 class Catalog4FGL(Catalog):
-    """This class supports releases the preliminary 4FGL.  See
-    .
-    """
+    '''
+    This class supports the LAT 8-year Source Catalog (4FGL).
+    See https://fermi.gsfc.nasa.gov/ssc/data/access/lat/8yr_catalog/
+    '''
 
     def __init__(self, fitsfile=None, extdir=None):
 
@@ -438,7 +447,7 @@ class Catalog4FGL(Catalog):
 
         if fitsfile is None:
             fitsfile = os.path.join(fermipy.PACKAGE_DATA, 'catalogs',
-                                    'gll_psc_v20.fit')
+                                    'gll_psc_v20.fit') #last update gll_psc_v22.fit
 
         #hdulist = fits.open(fitsfile)
         table = Table.read(fitsfile, hdu=1)
@@ -525,10 +534,10 @@ class Catalog4FGL(Catalog):
 
 
 class CatalogFL8Y(Catalog):
-    """This class supports releases the preliminary 8-yr point-source
-    list (FL8Y).  See
-    https://fermi.gsfc.nasa.gov/ssc/data/access/lat/fl8y/.
-    """
+    '''
+    This class supports the Preliminary LAT 8-year Source List (FL8Y).
+    See https://fermi.gsfc.nasa.gov/ssc/data/access/lat/fl8y/
+    '''
 
     def __init__(self, fitsfile=None, extdir=None):
 
@@ -538,7 +547,7 @@ class CatalogFL8Y(Catalog):
 
         if fitsfile is None:
             fitsfile = os.path.join(fermipy.PACKAGE_DATA, 'catalogs',
-                                    'gll_psc_8year_v5.fit')
+                                    'gll_psc_8year_v5.fit') #last update gll_psc_8year_v6.fit
 
         #hdulist = fits.open(fitsfile)
         table = Table.read(fitsfile, hdu=1)
@@ -618,9 +627,10 @@ class CatalogFL8Y(Catalog):
 
 
 class Catalog4FGLDR2(Catalog):
-    """This class supports the 10-year incremental update/4FGL-DR2.  See
-    https://fermi.gsfc.nasa.gov/ssc/data/access/lat/10yr_catalog/
-    """
+    '''
+    This class supports the LAT 10-year Source Catalog (4FGL-DR2).
+    See https://fermi.gsfc.nasa.gov/ssc/data/access/lat/10yr_catalog/
+    '''
 
     def __init__(self, fitsfile=None, extdir=None):
 
@@ -631,7 +641,7 @@ class Catalog4FGLDR2(Catalog):
 
         if fitsfile is None:
             fitsfile = os.path.join(fermipy.PACKAGE_DATA, 'catalogs',
-                                    'gll_psc_v27.fit')
+                                    'gll_psc_v27.fit') #last update detthresh_P8R3_10years_PL22.fits
 
         #hdulist = fits.open(fitsfile)
         table = Table.read(fitsfile, hdu=1)
@@ -717,9 +727,10 @@ class Catalog4FGLDR2(Catalog):
 
 
 class Catalog4FGLDR3(Catalog):
-    """This class supports the 12-year incremental update/4FGL-DR3.  See
-    https://fermi.gsfc.nasa.gov/ssc/data/access/lat/12yr_catalog/ 
-    """
+    '''
+    This class supports the LAT 12-year Source Catalog (4FGL-DR3).
+    See https://fermi.gsfc.nasa.gov/ssc/data/access/lat/12yr_catalog/
+    '''
 
     def __init__(self, fitsfile=None, extdir=None):
 
@@ -730,7 +741,7 @@ class Catalog4FGLDR3(Catalog):
 
         if fitsfile is None:
             fitsfile = os.path.join(fermipy.PACKAGE_DATA, 'catalogs',
-                                    'gll_psc_v29.fit') #added to the repository
+                                    'gll_psc_v29.fit') #last update gll_psc_v31.fit
 
         #hdulist = fits.open(fitsfile)
         table = Table.read(fitsfile, hdu=1)
@@ -812,9 +823,10 @@ class Catalog4FGLDR3(Catalog):
         tab['param_values'][m, idxs['Eb']] = tab['Pivot_Energy'][m]
 
 class Catalog4FGLDR4(Catalog):
-    """This class supports the 14-year update/4FGL-DR4.  See
-    https://fermi.gsfc.nasa.gov/ssc/data/access/lat/14yr_catalog/ 
-    """
+    '''
+    This class supports the LAT 14-year Source Catalog (4FGL-DR4).
+    See https://fermi.gsfc.nasa.gov/ssc/data/access/lat/14yr_catalog/
+    '''
 
     def __init__(self, fitsfile=None, extdir=None):
 
@@ -825,7 +837,7 @@ class Catalog4FGLDR4(Catalog):
 
         if fitsfile is None:
             fitsfile = os.path.join(fermipy.PACKAGE_DATA, 'catalogs',
-                                    'gll_psc_v35.fit') #added to the repository
+                                    'gll_psc_v35.fit') #last update gll_psc_v35.fit
 
         #hdulist = fits.open(fitsfile)
         table = Table.read(fitsfile, hdu=1)
