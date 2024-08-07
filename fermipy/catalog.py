@@ -158,6 +158,11 @@ class Catalog(object):
             name = ''
             if 'CDS-NAME' in h[1].header:
                 name = h[1].header['CDS-NAME']
+            
+            #Get the catalog file version number
+            catalog_file_version = ''
+            if 'VERSION' in h[1].header:
+                catalog_file_version = h[1].header['VERSION']
 
             tab = Table.read(fitsfile, hdu=1)
 
@@ -167,12 +172,20 @@ class Catalog(object):
             elif name == 'FL8Y':
                 return CatalogFL8Y(fitsfile)
             elif name == '4FGL':
-                if 'PLEC_Index' in tab.columns:
-                    return Catalog4FGL(fitsfile) ## this is ok for both 4FGL and 4FGL-DR2
-                elif 'PLEC_IndexS' in tab.columns:
-                    return Catalog4FGLDR3(fitsfile) 
-            #elif name == '4FGL-DR2': ## does not work because the CDS-NAME is still 4FGL also for the 4FGL-DR2
-            #    return Catalog4FGLDR2(fitsfile)
+                if catalog_file_version in ('v17','v18','v19','v20','v21','v22'):
+                    if 'PLEC_Index' in tab.columns:    
+                        return Catalog4FGL(fitsfile)
+                elif catalog_file_version in ('v23','v24','v25','v26','v27'):
+                    if 'PLEC_Index' in tab.columns:
+                        return Catalog4FGLDR2(fitsfile)
+                elif catalog_file_version in ('v28','v29','v30','v31'):
+                    if 'PLEC_IndexS' in tab.columns:
+                        return Catalog4FGLDR3(fitsfile)
+                elif catalog_file_version in ('v32','v33','v34','v35'):
+                    if 'PLEC_IndexS' in tab.columns:
+                        return Catalog4FGLDR4(fitsfile)
+                else:
+                    return Catalog4FGL()
             elif 'gll_psch_v08' in fitsfile:
                 return Catalog2FHL(fitsfile)
 
@@ -187,12 +200,14 @@ class Catalog(object):
             return Catalog2FHL()
         elif name == 'FL8Y':
             return CatalogFL8Y()
-        elif name == '4FGL':
-            return Catalog4FGL()
+        # elif name == '4FGL':
+        #     return Catalog4FGL()
         elif name == '4FGL-DR2':
             return Catalog4FGLDR2()
         elif name == '4FGL-DR3':
             return Catalog4FGLDR3()
+        elif name == '4FGL-DR4':
+            return Catalog4FGLDR4()
         else:
             raise Exception('Unrecognized catalog {}.'.format(name))
 
@@ -795,4 +810,100 @@ class Catalog4FGLDR3(Catalog):
         tab['param_values'][m, idxs['alpha']] = tab['LP_Index'][m]
         tab['param_values'][m, idxs['beta']] = tab['LP_beta'][m]
         tab['param_values'][m, idxs['Eb']] = tab['Pivot_Energy'][m]
+
+class Catalog4FGLDR4(Catalog):
+    """This class supports the 14-year update/4FGL-DR4.  See
+    https://fermi.gsfc.nasa.gov/ssc/data/access/lat/14yr_catalog/ 
+    """
+
+    def __init__(self, fitsfile=None, extdir=None):
+
+        if extdir is None:
+            extdir = os.path.join('$FERMIPY_DATA_DIR', 'catalogs',
+                                  'Extended_14years') ## to be added to the repository
+        #4FGL-DR3 is using a new archive for extended templates
+
+        if fitsfile is None:
+            fitsfile = os.path.join(fermipy.PACKAGE_DATA, 'catalogs',
+                                    'gll_psc_v35.fit') #added to the repository
+
+        #hdulist = fits.open(fitsfile)
+        table = Table.read(fitsfile, hdu=1)
+        table_extsrc = Table.read(fitsfile, 'ExtendedSources')
+        table_extsrc.meta.clear()
+        hdulist = fits.open(fitsfile)
+
+        strip_columns(table)
+        strip_columns(table_extsrc)
+        if 'Spatial_Function' not in table_extsrc.colnames:
+            table_extsrc.add_column(Column(name='Spatial_Function', dtype='U20',
+                                           length=len(table_extsrc)))
+            table_extsrc['Spatial_Function'] = 'SpatialMap'
+
+        #'Extended_Source_Name', 'Source_Name',
+        table = join_tables(table, table_extsrc,
+                            'Extended_Source_Name', 'Source_Name',
+                            ['Model_Form', 'Model_SemiMajor',
+                             'Model_SemiMinor', 'Model_PosAng',
+                             'Spatial_Filename', 'Spatial_Function'])
+        table.sort('Source_Name')
+        super(Catalog4FGLDR4, self).__init__(table, extdir)
+
+        excol = np.zeros((len(table)), 'bool')
+        for i, exname in enumerate(table['Extended_Source_Name']):
+            if len(exname.strip()) > 0:
+                excol[i] = True
+
+        self.table['extended'] = excol
+        self.table['Extended'] = excol
+
+        scol = Column(name='Spatial_Function', dtype='U20',
+                      data=self.table['Spatial_Function'].data)
+        self.table.remove_column('Spatial_Function')
+        self.table['Spatial_Function'] = scol
+
+        m = self.table['Spatial_Function'] == 'RadialGauss'
+        self.table['Spatial_Function'][m] = 'RadialGaussian'
+        self.table['TS'] = self.table['Signif_Avg'] * self.table['Signif_Avg']
+
+        m = self.table['SpectrumType'] == 'PLSuperExpCutoff'
+        self.table['SpectrumType'][m] = 'PLSuperExpCutoff4'
+
+        self._fill_params(self.table)
+
+    @staticmethod
+    def _fill_params(tab):
+
+        tab['param_values'] = np.nan * np.ones((len(tab), 10))
+
+        # PowerLaw
+        # Prefactor, Index, Scale
+        m = tab['SpectrumType'] == 'PowerLaw'
+        idxs = {k: i for i, k in
+                enumerate(get_function_par_names('PowerLaw'))}
+        tab['param_values'][m, idxs['Prefactor']] = tab['PL_Flux_Density'][m]
+        tab['param_values'][m, idxs['Index']] = -1.0 * tab['PL_Index'][m]
+        tab['param_values'][m, idxs['Scale']] = tab['Pivot_Energy'][m]
+
+        # PLSuperExpCutoff4
+        # Prefactor, IndexS, Scale, ExpfactorS, Index2
+        m = tab['SpectrumType'] == 'PLSuperExpCutoff4'
+        idxs = {k: i for i, k in
+                enumerate(get_function_par_names('PLSuperExpCutoff4'))}
+        tab['param_values'][m, idxs['Prefactor']] = tab['PLEC_Flux_Density'][m] 
+        tab['param_values'][m, idxs['IndexS']] = -1.0 * tab['PLEC_IndexS'][m]
+        tab['param_values'][m, idxs['Scale']] = tab['Pivot_Energy'][m]
+        tab['param_values'][m, idxs['ExpfactorS']] = tab['PLEC_ExpfactorS'][m]
+        tab['param_values'][m, idxs['Index2']] = tab['PLEC_Exp_Index'][m]
+
+        # LogParabola
+        # norm, alpha, beta, Eb
+        m = tab['SpectrumType'] == 'LogParabola'
+        idxs = {k: i for i, k in
+                enumerate(get_function_par_names('LogParabola'))}
+        tab['param_values'][m, idxs['norm']] = tab['LP_Flux_Density'][m]
+        tab['param_values'][m, idxs['alpha']] = tab['LP_Index'][m]
+        tab['param_values'][m, idxs['beta']] = tab['LP_beta'][m]
+        tab['param_values'][m, idxs['Eb']] = tab['Pivot_Energy'][m]
+
 
