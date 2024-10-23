@@ -68,3 +68,5 @@ fermipy/_version.py
 .ipynb_checkpoints
 *.tar.gz
 
+# IDE VSCode devcontainer
+.devcontainer/

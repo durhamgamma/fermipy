@@ -5344,14 +5344,29 @@ class GTBinnedAnalysis(fermipy.config.Configurable):
             colnames = ['START', 'STOP', 'LIVETIME',
                         'RA_SCZ', 'DEC_SCZ',
                         'RA_ZENITH', 'DEC_ZENITH']
-            tab_sc = create_sc_table(self.data_files['scfile'],
-                                     colnames=colnames)
-            tab_gti = Table.read(self.files['ft1'], 'GTI')
+            try:
+                tab_sc = create_sc_table(self.data_files['scfile'],
+                                         colnames=colnames)
+            except OSError as e:
+                self.logger.info(f"""Error cannot find the spacecraft file: {self.data_files['scfile']} when 
+                                 option 'use_local_ltcube' set true.""")
+            
+            try:
+                tab_gti = Table.read(self.files['ft1'], 'GTI')
+            except OSError as e:
+                self.logger.info(f"""Error cannot find the file: {self.files['ft1']} when 
+                                 option 'use_local_ltcube' set true.""")
+
             radius = self.config['selection']['radius'] + 10.0
-            ltc_new = LTCube.create_from_gti(self.roi.skydir, tab_sc, tab_gti,
+            try:
+                ltc_new = LTCube.create_from_gti(self.roi.skydir, tab_sc, tab_gti,
                                              self.config['selection']['zmax'],
                                              radius=radius)
-            ltc_new.write(self.files['ltcube'])
+                ltc_new.write(self.files['ltcube'])
+            except Exception:
+                self.logger.info(f"""Something went wrong with 'use_local_ltcube' set true
+                                 when trying to produce local ltcube with 'create_from_gti'.""")
+
         else:
             run_gtapp('gtltcube', self.logger, kw, loglevel=loglevel)
 
