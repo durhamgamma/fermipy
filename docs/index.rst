@@ -41,6 +41,7 @@ perform different analysis operations.
 
 For instructions on installing Fermipy see the :ref:`install` page.
 For a short introduction to using Fermipy see the :ref:`quickstart`.
+For more detailed examples see the :ref:`tutorials`. 
 
 Getting Help
 ------------
@@ -55,6 +56,11 @@ Acknowledging Fermipy
 To acknowledge Fermipy in a publication please cite `Wood et al. 2017
 <https://ui.adsabs.harvard.edu/#abs/2017ICRC...35..824W>`_.
 
+Fermipy Team
+------------
+
+*fermipy* is currently supported by a Fermi G. I. proposal (Proposal number 161029, P.I. Omodei)
+:ref:`team`
 
 Documentation Contents
 ----------------------
@@ -63,8 +69,10 @@ Documentation Contents
    :includehidden:
    :maxdepth: 3
 
+   team
    install
    quickstart
+   tutorials
    config
    output
    fitting

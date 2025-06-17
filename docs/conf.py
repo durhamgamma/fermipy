@@ -55,6 +55,7 @@ import fermipy
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'nbsphinx',
     'sphinx.ext.mathjax', 
     'sphinx.ext.autodoc', 
     'sphinx.ext.viewcode',
@@ -75,6 +76,22 @@ intersphinx_mapping = {
 
 intersphinx_cache_limit = 10
 
+if "GITHUB_TOKEN" in os.environ:
+
+    extensions.append("rtds_action")
+
+    # The path where the artifact should be extracted
+    # Note: this is relative to the conf.py file!
+    rtds_action_path = "notebooks"
+    # # The "prefix" used in the `upload-artifact` step of the action
+    rtds_action_artifact_prefix = "notebooks-for-"
+
+    rtds_action_github_repo = "fermiPy/fermipy"
+
+    # # A GitHub personal access token is required, more info below
+    rtds_action_github_token = os.environ["GITHUB_TOKEN"]
+
+    rtds_action_error_if_missing = True
 
 #intersphinx_mapping = {}
 #intersphinx_mapping['astropy'] = ('http://docs.astropy.org/en/latest/', None)
@@ -156,9 +173,9 @@ todo_include_todos = False
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 #if not on_rtd:  # only import and set the theme if we're building docs locally
-import sphinx_rtd_theme
+#import sphinx_rtd_theme
 html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+#html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
