@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
 from fermipy.version import get_git_version
+from pathlib import Path
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.rst").read_text()
 
 setup(
     name='fermipy',
     version=get_git_version(),
     author='The Fermipy developers',
-    author_email='fermipy.developers@gmail.com',
+    #author_email='fermipy.developers@gmail.com',
     description='A Python package for analysis of Fermi-LAT data',
+    long_description=long_description,
+    long_description_content_type='text/x-rst',
     license='BSD',
     packages=find_packages(),
     include_package_data=True,
@@ -20,7 +26,7 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Scientific/Engineering :: Astronomy',
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
     ],
     scripts=[],
     entry_points={'console_scripts': [
@@ -106,10 +112,10 @@ setup(
     install_requires=[
         "numpy>=1.16",
         "pyyaml",
-        "scipy<1.12",
-        "astropy<6",
+        "scipy<1.14",
+        "astropy",
         "matplotlib>=3.3",
-        "gammapy>=0.18",
+        "gammapy>=1.0",
         "healpy",
         "astropy-healpix"
     ],

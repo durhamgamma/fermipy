@@ -822,6 +822,7 @@ class Catalog4FGLDR3(Catalog):
         tab['param_values'][m, idxs['beta']] = tab['LP_beta'][m]
         tab['param_values'][m, idxs['Eb']] = tab['Pivot_Energy'][m]
 
+
 class Catalog4FGLDR4(Catalog):
     '''
     This class supports the LAT 14-year Source Catalog (4FGL-DR4).
@@ -833,11 +834,13 @@ class Catalog4FGLDR4(Catalog):
         if extdir is None:
             extdir = os.path.join('$FERMIPY_DATA_DIR', 'catalogs',
                                   'Extended_14years') ## to be added to the repository
-        #4FGL-DR3 is using a new archive for extended templates
+
+        #4FGL-DR4 is using a new archive for extended templates
 
         if fitsfile is None:
             fitsfile = os.path.join(fermipy.PACKAGE_DATA, 'catalogs',
-                                    'gll_psc_v35.fit') #last update gll_psc_v35.fit
+                                    'gll_psc_v35.fit') #added to the repository
+
 
         #hdulist = fits.open(fitsfile)
         table = Table.read(fitsfile, hdu=1)
